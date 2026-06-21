@@ -1,0 +1,6 @@
+{
+  "api_base": "http://127.0.0.1:8001",
+  "display_name": "PapiMiner local",
+  "notes": "Copy to config.local.json for private local overrides. Do not commit config.local.json."
+}
+

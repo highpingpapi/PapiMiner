@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PapiMiner</title>
+    <link rel="stylesheet" href="./styles.css?v=20260620-03" />
+  </head>
+  <body>
+    <div id="backgroundStage" class="background-stage" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" data-i18n="eyebrow">Pearl 本地控制台</p>
+          <h1>PapiMiner</h1>
+          <p class="subhead" data-i18n="subhead">导入模型，启动 plain 挖矿或 useful-work，并把每次推理的证据摊开给你看。</p>
+        </div>
+        <div class="top-actions">
+          <div class="lang-switch" aria-label="Language">
+            <button type="button" data-lang="zh">中文</button>
+            <button type="button" data-lang="en">English</button>
+          </div>
+          <button id="admireBackgroundBtn" class="admire-button" type="button" aria-pressed="false" data-i18n="admireBackground">欣赏背景</button>
+          <div class="view-switch" aria-label="View">
+            <button type="button" class="active" data-view="dashboard" data-i18n="viewDashboard">控制台</button>
+            <button type="button" data-view="chat" data-i18n="viewChat">对话</button>
+          </div>
+          <button id="refreshBtn" class="ghost" type="button" data-i18n="refresh">刷新</button>
+          <div class="status-pill" id="healthPill" data-i18n="checking">检查中</div>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <section class="main-column">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 data-i18n="importTitle">导入中心</h2>
+                <p data-i18n="importDesc">模型路径和运行档案只写入 local/，适合以后开源时保留干净代码。</p>
+              </div>
+              <span class="badge">local-only</span>
+            </div>
+            <div class="grid two">
+              <div class="control-card">
+                <h3 data-i18n="importModel">导入模型路径</h3>
+                <label>
+                  <span data-i18n="modelId">模型名称</span>
+                  <input id="importModelId" type="text" placeholder="Qwen3-30B-pearl" />
+                </label>
+                <label>
+                  <span data-i18n="modelPath">本地模型路径</span>
+                  <div class="path-row">
+                    <input id="importModelPath" type="text" placeholder="C:\models\pearl-ai\..." />
+                    <button id="browseModelFolderBtn" class="ghost small" type="button" data-i18n="browseFolder">选文件夹</button>
+                    <button id="browseModelFileBtn" class="ghost small" type="button" data-i18n="browseFile">选文件</button>
+                  </div>
+                </label>
+                <button id="importModelBtn" class="primary" type="button" data-i18n="importBtn">导入</button>
+                <p id="importModelStatus" class="hint">-</p>
+              </div>
+
+              <div class="control-card">
+                <h3 data-i18n="privacyCheck">隐私检查</h3>
+                <ul class="privacy-list">
+                  <li data-i18n="privacyWallet">钱包地址、worker 名：local-only</li>
+                  <li data-i18n="privacyPath">内网路径、机器名、日志路径：local-only</li>
+                  <li data-i18n="privacySecret">助记词、私钥、交易所密码：永不保存</li>
+                </ul>
+                <label>
+                  <span data-i18n="profileJson">导入 Miner / 运行档案 JSON</span>
+                  <textarea id="importProfileJson" rows="6" spellcheck="false"></textarea>
+                </label>
+                <p class="hint action-hint" data-i18n="profilePickerHint">Miner 通过运行档案导入，全部写入 local/。空着直接点导入，会先弹出 JSON 文件选择窗口。</p>
+                <div class="button-row template-row">
+                  <button class="ghost small" type="button" data-profile-template="plain" data-i18n="plainMinerTemplate">Plain miner 模板</button>
+                  <button class="ghost small" type="button" data-profile-template="useful" data-i18n="usefulMinerTemplate">Useful miner 模板</button>
+                  <button class="ghost small" type="button" data-profile-template="custom" data-i18n="customMinerTemplate">自定义命令模板</button>
+                </div>
+                <div class="button-row">
+                  <button id="browseProfileJsonBtn" class="ghost small" type="button" data-i18n="browseJson">选择档案文件</button>
+                  <button id="importProfileBtn" class="ghost" type="button" data-i18n="importProfile">导入已选档案</button>
+                </div>
+                <p id="importProfileStatus" class="hint">-</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 data-i18n="runTitle">运行控制</h2>
+                <p data-i18n="runDesc">Plain 和 Useful 默认不能抢同一张 GPU。Useful 默认是“本地请求 + 连接矿池挖 PRL”，不是池子派单。</p>
+              </div>
+              <div class="segmented" role="tablist">
+                <button type="button" class="active" data-mode="plain">Plain</button>
+                <button type="button" data-mode="useful">Useful</button>
+              </div>
+            </div>
+
+            <div class="run-grid">
+              <label>
+                <span data-i18n="profile">运行档案</span>
+                <select id="profileSelect"></select>
+              </label>
+
+              <div class="gpu-field">
+                <label for="runtimeGpu">
+                  <span data-i18n="gpuLabel">GPU(s)</span>
+                </label>
+                <div class="gpu-picker-intro" data-i18n="gpuPickerIntro">点击显卡卡片来自主选择要跑的 GPU，可多选；启动时只会使用选中的卡。</div>
+                <div class="gpu-override-note" data-i18n="gpuOverrideNote">这里的选择会覆盖运行档案里的默认 GPU；清空则回到档案默认值。</div>
+                <div id="gpuPicker" class="gpu-picker" aria-live="polite"></div>
+                <label class="gpu-manual-row">
+                  <span data-i18n="manualGpu">手动输入</span>
+                  <input id="runtimeGpu" type="text" data-i18n-placeholder="gpuPlaceholder" placeholder="0 或 0,1,2" />
+                </label>
+                <div class="gpu-actions">
+                  <button id="selectTwoGpusBtn" class="ghost small" type="button" data-i18n="selectTwoGpus">双卡 0,1</button>
+                  <button id="selectAllGpusBtn" class="ghost small" type="button" data-i18n="selectAllGpus">全卡运行</button>
+                  <button id="clearGpusBtn" class="ghost small" type="button" data-i18n="clearGpus">清空选择</button>
+                </div>
+                <div id="gpuSelectionStatus" class="gpu-selection-status">-</div>
+              </div>
+
+              <label>
+                <span data-i18n="tensorParallel">TP size / 张量并行</span>
+                <input id="runtimeTensorParallel" type="number" min="1" max="8" step="1" placeholder="auto" />
+                <small data-i18n="tensorParallelHint">Useful 多 GPU 时需要；留空会按所选 GPU 数自动填。</small>
+              </label>
+
+              <label>
+                Worker
+                <input id="runtimeWorker" type="text" placeholder="PapiMiner" />
+              </label>
+
+              <label>
+                <span data-i18n="wallet">PRL 地址</span>
+                <div class="secret-field">
+                  <input id="runtimeWallet" type="password" autocomplete="off" placeholder="prl1..." />
+                  <button id="runtimeWalletToggle" type="button" class="secret-toggle" aria-pressed="false">
+                    显示
+                  </button>
+                </div>
+              </label>
+
+              <label class="wide">
+                <span data-i18n="runtimeModel">Useful 模型</span>
+                <select id="runtimeModel"></select>
+              </label>
+
+              <input id="runtimeNoPool" type="checkbox" hidden />
+              <input id="poolRouted" type="checkbox" hidden />
+              <label class="toggle wide">
+                <input id="openMonitor" type="checkbox" />
+                <span data-i18n="openMonitor">启动时打开监控弹窗</span>
+              </label>
+              <div class="route-field wide">
+                <div class="route-title" data-i18n="usefulRouteTitle">Useful 连接方式</div>
+                <div class="route-options" role="radiogroup" aria-label="Useful route">
+                  <button class="route-card active" type="button" data-useful-route="pool-local" aria-pressed="true">
+                    <strong data-i18n="routePoolLocalTitle">连接矿池 + 本地推理</strong>
+                    <span data-i18n="routePoolLocalDesc">默认：连接矿池拿 job，本地提问可能提交 PRL share。参数：--inference-stream-mode reserved。</span>
+                  </button>
+                  <button class="route-card" type="button" data-useful-route="local" aria-pressed="false">
+                    <strong data-i18n="routeLocalTitle">只本地推理</strong>
+                    <span data-i18n="routeLocalDesc">不连接矿池，不提交 share，基本没有 PRL 收益。参数：--no-pool。</span>
+                  </button>
+                  <button class="route-card" type="button" data-useful-route="pool-routed" aria-pressed="false">
+                    <strong data-i18n="routePoolRoutedTitle">连接矿池 + 接受池子派单</strong>
+                    <span data-i18n="routePoolRoutedDesc">允许 Akoya pool 把外部请求派到你的机器。参数：--inference-stream-mode pool。默认不建议开。</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div id="runRevenueHint" class="mode-hint">-</div>
+            <div class="run-actions">
+              <button id="startRuntimeBtn" class="primary" type="button" data-i18n="start">启动</button>
+              <button id="stopRuntimeBtn" class="danger" type="button" data-i18n="stop">停止</button>
+              <span id="runtimeMessage" class="hint">-</span>
+            </div>
+          </section>
+
+          <section class="panel chat-panel chat-only">
+            <div class="panel-head">
+              <div>
+                <h2 data-i18n="chatTitle">模型对话</h2>
+                <p data-i18n="chatDesc">发送一次本地请求，PapiMiner 会记录 GEMM、CAPI、launch 和 share 的前后差值。</p>
+              </div>
+            </div>
+            <div class="chat-controls">
+              <div class="model-readout">
+                <span data-i18n="currentModel">当前模型</span>
+                <strong id="chatCurrentModel">-</strong>
+                <small data-i18n="modelSelectedInRunControl">在运行控制里选择模型；对话页只显示当前模型。</small>
+                <select id="modelSelect" class="visually-hidden" aria-hidden="true" tabindex="-1"></select>
+              </div>
+              <label>
+                Max tokens
+                <input id="maxTokens" type="number" min="1" max="4096" value="256" />
+              </label>
+              <label>
+                Temperature
+                <input id="temperature" type="number" min="0" max="2" step="0.1" value="0.3" />
+              </label>
+            </div>
+            <div id="chatLog" class="chat-log">
+              <div class="empty-state" data-i18n="emptyState">Akoya/vLLM 开起来之后，这里就能聊天并观察 useful-work 证据。</div>
+            </div>
+            <form id="chatForm" class="composer">
+              <textarea id="promptInput" rows="4" data-i18n-placeholder="promptPlaceholder" placeholder="比如：解释 Pearl useful work"></textarea>
+              <button id="sendBtn" type="submit" data-i18n="send">发送</button>
+            </form>
+          </section>
+        </section>
+
+        <aside class="side-column">
+          <section class="panel evidence-panel chat-only">
+            <div class="panel-head compact">
+              <div>
+                <h2 data-i18n="evidenceTitle">Useful 在哪</h2>
+                <p data-i18n="evidenceDesc">每次推理后的证据卡。</p>
+              </div>
+              <span id="evidenceVerdict" class="badge muted">-</span>
+            </div>
+            <div class="metric-grid">
+              <div><span>GEMM Δ</span><strong id="evidenceGemms">-</strong></div>
+              <div><span>CAPI Δ</span><strong id="evidenceCapi">-</strong></div>
+              <div><span>Launch Δ</span><strong id="evidenceLaunches">-</strong></div>
+              <div><span>Share Δ</span><strong id="evidenceShares">-</strong></div>
+              <div><span>Kernel Δ</span><strong id="evidenceKernel">-</strong></div>
+              <div><span>Tokens</span><strong id="evidenceTokens">-</strong></div>
+              <div><span>Useful H/s</span><strong id="evidenceHashrate">-</strong></div>
+            </div>
+            <ul id="evidenceReasons" class="reason-list"></ul>
+            <div id="layerList" class="layer-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head compact">
+              <h2 data-i18n="runtimeTitle">运行进程</h2>
+            </div>
+            <div id="runtimeList" class="runtime-list">-</div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head compact">
+              <h2>Metrics</h2>
+            </div>
+            <dl class="kv">
+              <div><dt>vLLM API</dt><dd id="apiBase">-</dd></div>
+              <div><dt data-i18n="updatedAt">更新时间</dt><dd id="updateTime">-</dd></div>
+              <div><dt>Hashrate</dt><dd id="usefulHashrate">-</dd></div>
+              <div><dt>Pool</dt><dd id="poolRegistered">-</dd></div>
+              <div><dt>Stream</dt><dd id="poolStream">-</dd></div>
+              <div><dt>Jobs</dt><dd id="jobsReceived">-</dd></div>
+              <div><dt>Shares</dt><dd id="shareTotals">-</dd></div>
+              <div><dt>Kernel</dt><dd id="kernelTotals">-</dd></div>
+              <div><dt>Mining</dt><dd id="miningEnabled">-</dd></div>
+            </dl>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head compact">
+              <h2 data-i18n="modelPathTitle">模型路径</h2>
+            </div>
+            <dl class="kv">
+              <div><dt data-i18n="selectedModel">当前模型</dt><dd id="selectedModelInfo">-</dd></div>
+              <div><dt data-i18n="localPath">本地路径</dt><dd id="selectedModelPath">-</dd></div>
+              <div><dt data-i18n="pathStatus">路径状态</dt><dd id="selectedModelPathStatus">-</dd></div>
+            </dl>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head compact">
+              <h2>GPU</h2>
+            </div>
+            <div id="gpuList" class="gpu-list" data-i18n="loading">读取中...</div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head compact">
+              <h2 data-i18n="appearance">外观</h2>
+            </div>
+            <div class="background-tools">
+              <label class="file-picker">
+                <span data-i18n="chooseBackground">选择背景图</span>
+                <input id="backgroundInput" type="file" accept="image/*" />
+              </label>
+              <button id="resetBackgroundBtn" class="ghost small" type="button" data-i18n="resetBackground">重置背景</button>
+              <p id="backgroundStatus" class="hint">-</p>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+    <script src="./app.js?v=20260620-03"></script>
+  </body>
+</html>

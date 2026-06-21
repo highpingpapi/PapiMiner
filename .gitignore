@@ -1,0 +1,101 @@
+# Local-only config and secrets
+.env
+.env.*
+!.env.example
+config.local.json
+*.local.json
+secrets/
+private/
+wallet*
+*seed*
+*mnemonic*
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Local runtime state
+local/*
+!local/README.md
+!local/.gitkeep
+data/
+cache/
+tmp/
+
+# Private research notes and downloaded references
+# Keep raw benchmark ledgers, wallet-bearing pool notes, and copied PDFs local.
+docs/papiminer-akoya-*.md
+docs/*candidate*.md
+docs/*.private.md
+references/papers/*.pdf
+references/**/*.pdf
+
+# Logs and temporary outputs
+logs/
+*.log
+*.jsonl
+*.pid
+*.tmp
+*.cache
+*.csv
+*.tsv
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.har
+*.pcap
+
+# Local binaries, archives, and profiler/build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.lib
+*.a
+*.o
+*.obj
+*.pdb
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+*.ncu-rep
+*.nsys-rep
+*.qdrep
+*.prof
+*.ptx
+*.cubin
+*.sass
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Model artifacts should never live in the open-source repo
+models/
+*.safetensors
+*.gguf
+*.bin
+*.pt
+*.pth
+*.onnx
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Frontend dependency/build folders if we later add a JS framework
+node_modules/
+dist/
+build/
+coverage/
