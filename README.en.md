@@ -1,27 +1,20 @@
 # PapiMiner English README
 
-PapiMiner is a local console for Pearl **PlainProof-only** mining. Its scope is
-deliberately small: import plain miner run profiles, start/stop a miner, and
-inspect GPU status, logs, and pool share results.
+PapiMiner is a local console for Pearl **PlainProof** mining.
 
-## What It Does
+The current v0.2 release is a launcher and monitor, not a full custom CUDA
+miner. Its default backend uses the open-source Akoya plain miner. PapiMiner
+imports run profiles, starts/stops a miner, shows GPU status, tails logs, and
+parses local TH/s plus pool share results.
 
-- Starts and stops PlainProof miner profiles.
-- Imports local run profiles such as miner path, working directory, GPUs, pool,
-  worker name, and launch argument template.
-- Shows GPU temperature, power, utilization, process status, and log tail.
-- Parses Akoya plain miner logs so you can inspect local TH/s and accepted
-  shares.
-- Keeps wallet addresses, worker names, local paths, and logs under `local/`.
+## Features
 
-## What It Does Not Do
-
-PapiMiner is not a wallet and not a trading bot. It does not store seed phrases,
-private keys, exchange passwords, wallet databases, or browser sessions.
-
-PapiMiner is also not the vLLM/useful-work console. AI inference and useful-work
-experiments should live in a separate project so this repository stays focused
-on plain mining.
+- Import plain miner run profiles
+- Start and stop miner processes
+- Select GPU, worker, pool, and PRL receiving address
+- Show GPU temperature, power, and utilization
+- Show runtime status and logs
+- Parse Akoya plain miner logs for TH/s and share results
 
 ## Quick Start
 
@@ -45,58 +38,36 @@ http://127.0.0.1:8788/
 
 ## Run Profiles
 
-A run profile is a local launch card. It can contain:
+A run profile is a launch card. It can define the miner executable, working
+directory, GPU list, pool, worker, PRL receiving address, and command template.
 
-- miner executable path
-- working directory
-- GPU list
-- pool host and port
-- worker name
-- PRL receiving address
-- log path
-- command template
+The built-in profile points to Akoya plain miner. A future custom CUDA kernel can
+be plugged in through the same profile system, so different backends can be
+tested side by side.
 
-These values can reveal local machine details, so PapiMiner stores them in
-`local/run-profiles.local.json`, which is ignored by Git.
+## Local Hashrate
 
-## Local Benchmarking
+PapiMiner reads log lines such as:
 
-PapiMiner reads miner log lines such as `hashes/s=... TH/s` and share result
-lines such as `accepted=True`. Public documentation does not include the
-author's real wallet, worker, machine path, or long-running hashrate because
-those values are local and should not be treated as a universal performance
-claim.
-
-You can parse your own log with:
-
-```powershell
-python .\tools\parse_akoya_miner_log.py .\local\run-logs\your-run.log
+```text
+hashes/s=... TH/s
+accepted=True
 ```
 
-## Privacy Boundary
+The displayed result is therefore a combination of local miner logs and pool
+share responses. GPU model, driver, power limit, and pool conditions can all
+change the result.
 
-The following local-only files are ignored by Git:
+## Custom Kernel Roadmap
 
-- `local/run-profiles.local.json`
-- `local/runtime.local.json`
-- `local/settings.local.json`
-- `local/run-logs/`
-- `local/backgrounds/`
+The next milestone is not a larger UI. It is a replaceable, verifiable, A/B
+testable custom GPU backend. See:
 
-Before publishing, run:
+[Kernel Roadmap](docs/KERNEL_ROADMAP.md)
+
+## Development
 
 ```powershell
 python -m pytest -q
-python .\tools\local_audit.py --output .\local\test-runs\github-redteam-audit.json
+python .\tools\local_audit.py --output .\local\test-runs\audit.json
 ```
-
-Expected result: tests pass and privacy hits are `0`.
-
-## Open-Source Rule
-
-This repository follows three simple rules:
-
-1. Public code must not contain private machine data.
-2. Plain mining stays separate from AI/useful-work experiments.
-3. Local benchmark data should be reproducible, not advertised as a universal
-   promise.
