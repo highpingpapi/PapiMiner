@@ -98,7 +98,7 @@ local/.gitkeep
 
 ## Why Not Publish Every Experiment Yet / 为什么暂时不公开全部实验
 
-The raw PapiMiner notes are useful, but they were written as a lab notebook.
+The raw PapiMiner notes have value, but they were written as a lab notebook.
 They may include live pool addresses, exact artifact names, local paths, and
 short-lived test assumptions. Publish a redacted research report later instead
 of the raw notes.

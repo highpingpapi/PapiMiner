@@ -156,11 +156,6 @@ def artifact_coverage(artifacts: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "smoke_latest": next((name for name in names if name.startswith("smoke-")), None),
         "plain_pool_test": next((name for name in names if name.startswith("plain-pool-test-")), None),
-        "llama31_useful": next((name for name in names if "llama31-8b" in name), None),
-        "gemma31_attempt": next((name for name in names if "gemma31b" in name), None),
-        "tinyllama_windows_path": next((name for name in names if "tinyllama-windows-path" in name), None),
-        "tinyllama_short_id": next((name for name in names if "tinyllama-short-id" in name), None),
-        "large_model_attempts": next((name for name in names if name.startswith("large-model-attempts-")), None),
         "matrix": next((name for name in names if name.startswith("papiminer-test-matrix-")), None),
     }
 
@@ -169,13 +164,10 @@ def build_report(console_base: str) -> dict[str, Any]:
     console_base = console_base.rstrip("/")
     status, status_error = request_json(f"{console_base}/api/status")
     runtime, runtime_error = request_json(f"{console_base}/api/runtime/status")
-    registry, registry_error = load_json(LOCAL_DIR / "models.local.json")
     profiles, profiles_error = load_json(LOCAL_DIR / "run-profiles.local.json")
     artifacts = latest_artifacts()
     privacy_hits = privacy_scan()
 
-    complete_models = [row for row in model_rows(registry) if row.get("complete") is True]
-    incomplete_models = [row for row in model_rows(registry) if row.get("complete") is not True]
     running = [
         {
             "profile_id": item.get("profile_id"),
@@ -194,18 +186,11 @@ def build_report(console_base: str) -> dict[str, Any]:
         "console_base": console_base,
         "status_error": status_error,
         "runtime_error": runtime_error,
-        "registry_error": registry_error,
         "profiles_error": profiles_error,
         "control_online": status_error is None,
-        "vllm_online": bool((status or {}).get("health", {}).get("online")),
-        "served_models": (status or {}).get("models", []),
+        "mode": (status or {}).get("mode"),
         "gpu": (status or {}).get("gpu", []),
         "runtime_processes": running,
-        "model_registry": {
-            "complete_count": len(complete_models),
-            "incomplete_count": len(incomplete_models),
-            "models": model_rows(registry),
-        },
         "run_profiles_count": len((profiles or {}).get("profiles", [])) if isinstance(profiles, dict) else 0,
         "latest_artifacts": artifacts,
         "artifact_coverage": artifact_coverage(artifacts),
@@ -214,8 +199,6 @@ def build_report(console_base: str) -> dict[str, Any]:
             "hits": privacy_hits,
         },
         "remaining_gaps": [
-            "Qwen3 30B and Gemma 31B still need successful runtime/chat evidence",
-            "Llama 3.3 70B download is incomplete",
             "Actual PRL/day requires a longer pool-connected payout/share window",
         ],
     }
@@ -235,11 +218,8 @@ def main() -> int:
         "ok": report["ok"],
         "output": str(output),
         "control_online": report["control_online"],
-        "vllm_online": report["vllm_online"],
-        "served_models": report["served_models"],
+        "mode": report["mode"],
         "privacy_hits": len(report["privacy_scan"]["hits"]),
-        "complete_models": report["model_registry"]["complete_count"],
-        "incomplete_models": report["model_registry"]["incomplete_count"],
     }, ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 1
 

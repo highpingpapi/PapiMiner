@@ -16,57 +16,53 @@ def load_papiminer():
     return module
 
 
-def test_useful_multi_gpu_auto_sets_tensor_parallel_size(tmp_path: Path) -> None:
+def test_default_profiles_are_plain_only() -> None:
+    app = load_papiminer()
+    profiles = app.default_run_profiles()
+
+    assert profiles
+    assert all(profile["kind"] == "plain" for profile in profiles)
+    assert all(profile["backend"] in {"akoya_plain", "custom"} for profile in profiles)
+
+
+def test_plain_akoya_command_uses_pool_env(tmp_path: Path) -> None:
     app = load_papiminer()
     profile = {
-        "id": "useful-test",
-        "backend": "akoya_vllm",
+        "id": "plain-test",
+        "kind": "plain",
+        "backend": "akoya_plain",
         "cwd": str(tmp_path),
+        "path": str(tmp_path / "akoya-miner"),
         "gpu": "0",
-        "model": str(tmp_path),
+        "akoya_gpu_indices": "0",
         "wallet_address": "{wallet_address}",
         "worker": "test-worker",
-        "tensor_parallel_size": 1,
+        "pool_host": "pool.example.com",
+        "pool_port": "443",
+        "pool_tls": True,
     }
-    command, effective, error = app.build_runtime_command(profile, {"gpu": "0,1"})
+
+    command, effective, error = app.build_runtime_command(profile, {})
 
     assert error is None
     assert command is not None
-    assert effective["tensor_parallel_size"] == "2"
-    assert "--host 127.0.0.1 --port 8001 -- --tensor-parallel-size 2" in command[-1]
-    assert "--tensor-parallel-size 2" in command[-1]
+    assert effective["kind"] == "plain"
+    assert "AKOYA_POOL_HOST=pool.example.com" in command[-1]
+    assert "AKOYA_POOL_WORKER=test-worker" in command[-1]
+    assert "mine-blocks" in command[-1]
 
 
-def test_useful_multi_gpu_keeps_explicit_tensor_parallel_size(tmp_path: Path) -> None:
+def test_non_plain_profile_is_rejected(tmp_path: Path) -> None:
     app = load_papiminer()
     profile = {
-        "id": "useful-test",
-        "backend": "akoya_vllm",
+        "id": "not-plain",
+        "kind": "ai",
+        "backend": "model_runner",
         "cwd": str(tmp_path),
-        "gpu": "0",
-        "model": str(tmp_path),
-        "wallet_address": "{wallet_address}",
-        "worker": "test-worker",
-        "tensor_parallel_size": 1,
     }
-    command, effective, error = app.build_runtime_command(profile, {"gpu": "0,1", "tensor_parallel_size": "1"})
 
-    assert error is None
-    assert command is not None
-    assert effective["tensor_parallel_size"] == "1"
-    assert "--tensor-parallel-size 1" in command[-1]
+    command, _effective, error = app.build_runtime_command(profile, {})
 
-
-def test_stopped_runtime_with_log_error_is_not_plain_timeout() -> None:
-    app = load_papiminer()
-    record = {"running": False}
-    lines = [
-        "EngineCore failed to start.",
-        "torch.OutOfMemoryError: CUDA out of memory.",
-    ]
-
-    diagnostic = app.runtime_stage_from_log(record, None, lines)
-
-    assert diagnostic["code"] == "stopped_error"
-    assert diagnostic["severity"] == "bad"
-    assert "OutOfMemory" in diagnostic["recent_error"]
+    assert command is None
+    assert error is not None
+    assert "plain-only" in error

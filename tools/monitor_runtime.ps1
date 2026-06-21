@@ -1,7 +1,6 @@
 param(
   [string]$Title = "PapiMiner Monitor",
   [string]$LogPath = "",
-  [string]$ApiBase = "",
   [int]$IntervalSec = 2
 )
 
@@ -10,7 +9,7 @@ $Host.UI.RawUI.WindowTitle = $Title
 if ($IntervalSec -lt 1) { $IntervalSec = 1 }
 
 function Show-GpuTable {
-  Write-Host "GPU sensors / 显卡传感器" -ForegroundColor Cyan
+  Write-Host "GPU sensors / GPU 传感器" -ForegroundColor Cyan
   $query = "index,name,temperature.gpu,power.draw,power.limit,utilization.gpu,clocks.sm,clocks.mem,fan.speed,memory.used,memory.total"
   $rows = & nvidia-smi "--query-gpu=$query" "--format=csv,noheader,nounits" 2>$null
   if (-not $rows) {
@@ -31,7 +30,7 @@ function Show-GpuTable {
 
 function Show-GpuProcesses {
   Write-Host ""
-  Write-Host "GPU processes / 显卡进程" -ForegroundColor Cyan
+  Write-Host "GPU processes / GPU 进程" -ForegroundColor Cyan
   $pmon = & nvidia-smi pmon -c 1 2>$null
   if ($pmon) {
     $pmon | Select-Object -First 20 | ForEach-Object { Write-Host $_ }
@@ -40,32 +39,10 @@ function Show-GpuProcesses {
   }
 }
 
-function Show-Metrics {
-  if (-not $ApiBase) { return }
-  Write-Host ""
-  Write-Host "Useful metrics / useful-work 指标" -ForegroundColor Cyan
-  try {
-    $metrics = Invoke-WebRequest -UseBasicParsing -Uri "$($ApiBase.TrimEnd('/'))/metrics" -TimeoutSec 1
-    $lines = $metrics.Content -split "`n" |
-      Where-Object {
-        $_ -match "akoya|useful|share|gemm|launch|hash|layer|vllm" -and
-        $_ -notmatch "^#"
-      } |
-      Select-Object -First 24
-    if ($lines) {
-      $lines | ForEach-Object { Write-Host $_ }
-    } else {
-      Write-Host "Metrics endpoint is reachable, but no selected mining metrics were found."
-    }
-  } catch {
-    Write-Host "Metrics unavailable at $ApiBase." -ForegroundColor Yellow
-  }
-}
-
 function Show-LogTail {
   if (-not $LogPath) { return }
   Write-Host ""
-  Write-Host "Recent log / 最近日志" -ForegroundColor Cyan
+  Write-Host "Recent miner log / 最近矿工日志" -ForegroundColor Cyan
   if (Test-Path -LiteralPath $LogPath) {
     Get-Content -LiteralPath $LogPath -Tail 28 -Encoding UTF8
   } else {
@@ -78,10 +55,8 @@ while ($true) {
   Write-Host $Title -ForegroundColor Green
   Write-Host ("Updated / 更新时间: " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss"))
   Write-Host "Close this window or press Ctrl+C to stop the monitor. It does not stop the miner."
-  Write-Host ""
   Show-GpuTable
   Show-GpuProcesses
-  Show-Metrics
   Show-LogTail
   Start-Sleep -Seconds $IntervalSec
 }

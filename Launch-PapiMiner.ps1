@@ -11,24 +11,6 @@ $LocalDir = Join-Path $Root "local"
 $PidFile = Join-Path $LocalDir "PapiMiner-server-$Port.pid"
 $OutLog = Join-Path $LocalDir "PapiMiner-server-$Port.out.log"
 $ErrLog = Join-Path $LocalDir "PapiMiner-server-$Port.err.log"
-$ApiBase = $env:PAPIMINER_API_BASE
-
-if (-not $ApiBase) {
-    $EnvFile = Join-Path $Root ".env"
-    if (Test-Path $EnvFile) {
-        foreach ($line in Get-Content -Encoding UTF8 $EnvFile) {
-            if ($line -match "^\s*(PAPIMINER_API_BASE|PapiMiner_API_BASE)\s*=\s*(.+?)\s*$") {
-                $ApiBase = $Matches[2].Trim('"').Trim("'")
-                break
-            }
-        }
-    }
-}
-
-if (-not $ApiBase) {
-    $ApiBase = "http://127.0.0.1:8001"
-}
-
 function Test-Url {
     param([string] $Url)
     try {
@@ -36,15 +18,6 @@ function Test-Url {
         return $true
     } catch {
         return $false
-    }
-}
-
-function Get-RunningApiBase {
-    try {
-        $status = Invoke-RestMethod -Uri "$Url/api/ready" -TimeoutSec 2
-        return [string]$status.api_base
-    } catch {
-        return ""
     }
 }
 
@@ -95,20 +68,15 @@ if ($Restart) {
 }
 
 if (Test-Url "$Url/api/ready") {
-    $RunningApiBase = Get-RunningApiBase
-    if ($RunningApiBase -eq $ApiBase) {
-        $ListeningPid = Get-ListeningPid
-        if ($ListeningPid) {
-            Set-Content -Path $PidFile -Value $ListeningPid -Encoding ASCII
-        }
-        if ($Open) {
-            Start-Process $Url
-        }
-        Write-Host "PapiMiner is already running: $Url"
-        exit 0
+    $ListeningPid = Get-ListeningPid
+    if ($ListeningPid) {
+        Set-Content -Path $PidFile -Value $ListeningPid -Encoding ASCII
     }
-    Write-Host "PapiMiner is running with API base '$RunningApiBase', restarting with '$ApiBase'."
-    Stop-OldServer
+    if ($Open) {
+        Start-Process $Url
+    }
+    Write-Host "PapiMiner is already running: $Url"
+    exit 0
 }
 
 $Python = (Get-Command python -ErrorAction SilentlyContinue)
@@ -119,7 +87,6 @@ if (-not $Python) {
 
 $Args = @(
     (Join-Path $Root "PapiMiner.py"),
-    "--api-base", $ApiBase,
     "serve",
     "--host", "127.0.0.1",
     "--port", "$Port"
@@ -162,4 +129,4 @@ if ($Open) {
 } else {
     Write-Host "Use the Codex in-app browser or open this URL manually."
 }
-Write-Host "API base: $ApiBase"
+Write-Host "Mode: plain-only"
