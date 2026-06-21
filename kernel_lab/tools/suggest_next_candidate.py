@@ -27,6 +27,14 @@ def main() -> int:
         print(f"Kind: {item['kind']}")
         print(f"Goal: {item['goal']}")
         print(f"Why: {item['why']}")
+        if item.get("owned_artifacts"):
+            print("Owned artifacts:")
+            for artifact in item["owned_artifacts"]:
+                print(f"- {artifact}")
+        if item.get("build_env"):
+            print("Build env:")
+            for key, value in item["build_env"].items():
+                print(f"- {key}={value}")
         print("Gates:")
         for gate in item.get("gates", []):
             print(f"- {gate}")

@@ -16,6 +16,14 @@
     "same backend, same pool, same power envelope, and same measurement window",
     "no wallet address, worker name, host path, or machine identifier in committed artifacts"
   ],
+  "akoya_capi_hot_path": [
+    "pearl_capi_workspace_install_params",
+    "pearl_capi_iter",
+    "pearl_capi_iter_batch",
+    "pearl_capi_iter_batch_graph_prepare",
+    "pearl_capi_iter_batch_graph_launch",
+    "pearl_capi_noisy_gemm"
+  ],
   "baselines": [
     {
       "id": "upstream-akoya-max-l1-window",
@@ -36,7 +44,42 @@
       "goal": "Build the smallest backend that can satisfy the PlainProof/CAPI contract.",
       "expected_speed": "slow_or_unknown",
       "why": "A slow correct backend gives us an owned test harness before optimizing.",
+      "owned_artifacts": [
+        "kernel_lab/minimal_capi/pearl_gemm_capi_stub.h",
+        "kernel_lab/minimal_capi/pearl_gemm_capi_stub.cpp"
+      ],
       "gates": ["transcript/proof validity check passes", "real pool accepted share is observed"]
+    },
+    {
+      "id": "akoya-delay-a-fragment-v0",
+      "kind": "akoya_hot_path_candidate",
+      "status": "next",
+      "goal": "Apply an Akoya consumer-kernel scheduling variant that delays A fragment materialization after B ldmatrix.",
+      "expected_speed": "unknown",
+      "why": "The upstream hot path already exposes this proof-preserving scheduling switch, and prior evidence points at ldmatrix/MMA/register lifetime pressure.",
+      "build_env": {
+        "PEARL_GEMM_ARCH": "ada",
+        "PEARL_GEMM_LOCAL_ARCH": "sm_89",
+        "PEARL_GEMM_CONSUMER_S2R_B_FIRST": "1",
+        "PEARL_GEMM_CONSUMER_DELAY_A_FRAGMENT": "1",
+        "PEARL_GEMM_CONSUMER_HOIST_C_VIEW": "1"
+      },
+      "gates": ["SASS hot path differs", "transcript/proof validity check passes", "same-window live A/B accepted share"]
+    },
+    {
+      "id": "akoya-raw-b-x1-v0",
+      "kind": "akoya_hot_path_candidate",
+      "status": "planned",
+      "goal": "Test raw-B x1 ldmatrix path to reduce B fragment materialization cost.",
+      "expected_speed": "unknown",
+      "why": "Raw-B variants target the exact B operand materialization path instead of wrapper-level CUTE call ordering.",
+      "build_env": {
+        "PEARL_GEMM_ARCH": "ada",
+        "PEARL_GEMM_LOCAL_ARCH": "sm_89",
+        "PEARL_GEMM_CONSUMER_MANUAL_AKOYA_MAINLOOP": "1",
+        "PEARL_GEMM_CONSUMER_MANUAL_GEMM_FIXED_RAW_B_X1": "1"
+      },
+      "gates": ["SASS hot path differs", "transcript/proof validity check passes", "same-window benchmark improves"]
     },
     {
       "id": "shared-fragment-materialization-v0",

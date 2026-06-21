@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "library": "libpearl_gemm_capi",
+  "abi_version": 2,
+  "purpose": "C ABI that Akoya miner uses to call the Pearl PlainProof GPU backend",
+  "required_symbols": [
+    "pearl_capi_abi_version",
+    "pearl_capi_build_profile",
+    "pearl_capi_supports_sm",
+    "pearl_capi_get_host_signal_sync_size",
+    "pearl_capi_get_host_signal_header_size",
+    "pearl_capi_get_required_scratchpad_bytes",
+    "pearl_capi_workspace_alloc",
+    "pearl_capi_workspace_free",
+    "pearl_capi_workspace_install_params",
+    "pearl_capi_iter",
+    "pearl_capi_iter_batch",
+    "pearl_capi_iter_batch_graph_prepare",
+    "pearl_capi_iter_batch_graph_launch",
+    "pearl_capi_noisy_gemm"
+  ],
+  "hot_path_order": [
+    "lcg_int7_fill",
+    "tensor_hash_A",
+    "commitment_hash",
+    "noise_gen_A",
+    "noisy_gemm_or_consumer_transcript_gemm"
+  ],
+  "optimization_focus": [
+    "consumer transcript GEMM",
+    "shared-memory layout",
+    "ldmatrix issue order",
+    "MMA issue order",
+    "register lifetime",
+    "host signal header write path"
+  ],
+  "non_goals": [
+    "AI inference scheduling",
+    "pool-routed inference jobs",
+    "wallet handling",
+    "exchange automation"
+  ]
+}

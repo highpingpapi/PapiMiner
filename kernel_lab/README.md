@@ -46,6 +46,12 @@ materialization, register lifetime, and the GEMM/transcript boundary.
 ## Files
 
 - `candidates.json`: baseline, candidate list, and acceptance gates.
+- `akoya_capi_contract.json`: the C ABI symbols PapiMiner must satisfy before
+  it can replace the upstream GPU backend.
+- `minimal_capi/`: an owned ABI-compatible stub. It is not a miner yet, but it
+  pins down the exported functions we must implement.
 - `tools/suggest_next_candidate.py`: prints the next candidate to work on.
+- `tools/akoya_candidate_matrix.py`: prints build commands for Akoya hot path
+  candidates.
 - `patches/`: human-readable patch plans. These are specs, not automatic edits
   to upstream code.
