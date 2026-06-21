@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "project": "papiminer-kernel-lab",
+  "scope": "Pearl PlainProof mining backend only",
+  "target": {
+    "near_term": "minimal proof-valid CAPI-compatible backend",
+    "performance_gate": "beat upstream baseline in same-pool live A/B windows",
+    "stretch_ths": 140.0,
+    "baseline_ths_range": [108.0, 110.5]
+  },
+  "acceptance_gates": [
+    "transcript/proof validity check passes",
+    "real pool accepted share is observed",
+    "rejected share count stays at zero during the test window",
+    "duplicate share count does not dominate the window",
+    "same backend, same pool, same power envelope, and same measurement window",
+    "no wallet address, worker name, host path, or machine identifier in committed artifacts"
+  ],
+  "baselines": [
+    {
+      "id": "upstream-akoya-max-l1-window",
+      "kind": "upstream_baseline",
+      "status": "validated",
+      "summary": "Prior local live window showed about 109.94 TH/s average with accepted shares and no rejects.",
+      "ths_avg": 109.94,
+      "shares_accepted": 5,
+      "shares_rejected": 0,
+      "lesson": "Runtime carveout changes alone did not create a new throughput tier."
+    }
+  ],
+  "candidates": [
+    {
+      "id": "minimal-capi-backend-v0",
+      "kind": "correctness_first",
+      "status": "next",
+      "goal": "Build the smallest backend that can satisfy the PlainProof/CAPI contract.",
+      "expected_speed": "slow_or_unknown",
+      "why": "A slow correct backend gives us an owned test harness before optimizing.",
+      "gates": ["transcript/proof validity check passes", "real pool accepted share is observed"]
+    },
+    {
+      "id": "shared-fragment-materialization-v0",
+      "kind": "performance_candidate",
+      "status": "planned",
+      "goal": "Change shared-memory layout or fragment materialization so the hot path is not the same SASS as prior wrapper variants.",
+      "expected_speed": "unknown",
+      "why": "Prior wrapper-level changes often compiled to identical SASS; the next attempt must affect the actual hot path.",
+      "gates": ["SASS hot path differs", "transcript/proof validity check passes", "same-window benchmark improves"]
+    },
+    {
+      "id": "register-lifetime-snapshot-v0",
+      "kind": "performance_candidate",
+      "status": "planned",
+      "goal": "Shorten register lifetime around GEMM/transcript snapshot without changing proof semantics.",
+      "expected_speed": "unknown",
+      "why": "Prior evidence points at register pressure and ldmatrix/MMA scheduling as likely bottlenecks.",
+      "gates": ["no spills regression", "transcript/proof validity check passes", "same-window benchmark improves"]
+    },
+    {
+      "id": "manual-colmajor-rreg232-prior",
+      "kind": "prior_candidate",
+      "status": "record_only",
+      "goal": "Record a prior proof-valid small positive signal for future comparison.",
+      "local_delta_pct": 0.7,
+      "why": "Useful evidence, but below the promotion threshold for a public claim.",
+      "gates": ["record only"]
+    }
+  ]
+}

@@ -42,10 +42,10 @@ http://127.0.0.1:8788/
 - Runtime logs
 - Akoya plain miner log parser
 - Local profile files under `local/`
+- A custom-kernel roadmap for a future replaceable Pearl PlainProof backend
 
 ## Development
 
 ```powershell
 python -m pytest -q
-python .\tools\local_audit.py --output .\local\test-runs\audit.json
 ```

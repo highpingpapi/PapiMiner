@@ -65,9 +65,12 @@ testable custom GPU backend. See:
 
 [Kernel Roadmap](docs/KERNEL_ROADMAP.md)
 
+The active candidate list is tracked in:
+
+[Kernel Lab](kernel_lab/README.md)
+
 ## Development
 
 ```powershell
 python -m pytest -q
-python .\tools\local_audit.py --output .\local\test-runs\audit.json
 ```

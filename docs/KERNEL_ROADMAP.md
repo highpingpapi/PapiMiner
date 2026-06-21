@@ -20,6 +20,14 @@ PapiMiner 当前不是自研 CUDA kernel miner。它现在是 plain miner 控制
 
 > 一个可替换、可验证、可 A/B 测试的 Pearl PlainProof CUDA backend。
 
+公开目标写法：
+
+> PapiMiner aims to build an open, verifiable Pearl PlainProof backend and use
+> live accepted-share A/B tests to challenge the 120-140 TH/s class.
+
+也就是：先做正确，再做快；先有 accepted share，再谈 TH/s。140 TH/s 是冲刺目标，
+不是当前发布版本的性能承诺。
+
 ### 里程碑
 
 1. **Baseline 固化**
@@ -31,6 +39,7 @@ PapiMiner 当前不是自研 CUDA kernel miner。它现在是 plain miner 控制
    - 做一个独立 `libpearl_gemm_capi` 兼容 backend。
    - 第一版允许很慢，但必须 proof-valid。
    - 目标是能被 Akoya miner 调用，并能在矿池 accepted。
+   - 这一步才算“真正进入自研 kernel/backend”，之前更多是边界和瓶颈实验。
 
 3. **CUDA Kernel 候选**
    - 从最小正确 kernel 开始。
@@ -54,6 +63,8 @@ PapiMiner 当前不是自研 CUDA kernel miner。它现在是 plain miner 控制
 - 自研 kernel：还没有作为公开源码发布。
 - 当前本地已验证的有效窗口：约 108-110 TH/s 档，来自 Akoya/上游 backend。
 - 下一步：做一个最小 proof-valid CAPI backend，再谈优化到 120+ TH/s。
+- 当前 PapiMiner 只做 PlainProof / useless mining；AI useful-work、vLLM 和 pool
+  routed jobs 属于另一个项目边界。
 
 ## English
 
@@ -81,6 +92,14 @@ to:
 
 > a replaceable, verifiable, A/B-testable Pearl PlainProof CUDA backend.
 
+Public target statement:
+
+> PapiMiner aims to build an open, verifiable Pearl PlainProof backend and use
+> live accepted-share A/B tests to challenge the 120-140 TH/s class.
+
+In plain words: correctness first, speed second. Accepted shares come before any
+TH/s claim. 140 TH/s is a stretch target, not a current release promise.
+
 ### Milestones
 
 1. **Freeze the Baseline**
@@ -92,6 +111,8 @@ to:
    - Build an independent `libpearl_gemm_capi` compatible backend.
    - The first version may be slow, but it must be proof-valid.
    - It must be callable by Akoya miner and accepted by the pool.
+   - This is the first real custom backend milestone. Earlier work was mostly
+     boundary mapping and bottleneck discovery.
 
 3. **CUDA Kernel Candidates**
    - Start from the minimal correct kernel.
@@ -117,3 +138,5 @@ to:
 - Custom kernel: not yet published as open source.
 - Current valid local window: around 108-110 TH/s, from Akoya/upstream backend.
 - Next step: build a minimal proof-valid CAPI backend before chasing 120+ TH/s.
+- Current PapiMiner scope is PlainProof / useless mining only. AI useful-work,
+  vLLM, and pool-routed jobs belong to a separate project boundary.

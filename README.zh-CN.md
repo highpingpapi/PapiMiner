@@ -62,9 +62,12 @@ accepted=True
 
 [Kernel Roadmap / 自研 Kernel 路线](docs/KERNEL_ROADMAP.md)
 
+当前实验清单放在：
+
+[Kernel Lab](kernel_lab/README.md)
+
 ## 开发检查
 
 ```powershell
 python -m pytest -q
-python .\tools\local_audit.py --output .\local\test-runs\audit.json
 ```
