@@ -53,10 +53,11 @@
     {
       "id": "akoya-delay-a-fragment-v0",
       "kind": "akoya_hot_path_candidate",
-      "status": "next",
+      "status": "rejected",
       "goal": "Apply an Akoya consumer-kernel scheduling variant that delays A fragment materialization after B ldmatrix.",
       "expected_speed": "unknown",
       "why": "The upstream hot path already exposes this proof-preserving scheduling switch, and prior evidence points at ldmatrix/MMA/register lifetime pressure.",
+      "result": "Rejected in a short same-pool live A/B window: proof-valid and accepted shares observed, but average TH/s was slightly below the clean baseline.",
       "build_env": {
         "PEARL_GEMM_ARCH": "ada",
         "PEARL_GEMM_LOCAL_ARCH": "sm_89",
@@ -69,7 +70,7 @@
     {
       "id": "akoya-raw-b-x1-v0",
       "kind": "akoya_hot_path_candidate",
-      "status": "planned",
+      "status": "next",
       "goal": "Test raw-B x1 ldmatrix path to reduce B fragment materialization cost.",
       "expected_speed": "unknown",
       "why": "Raw-B variants target the exact B operand materialization path instead of wrapper-level CUTE call ordering.",
